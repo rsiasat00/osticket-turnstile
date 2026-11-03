@@ -16,11 +16,18 @@ class CloudflareTurnstilePlugin extends Plugin {
 
         // Only protect the password flows; never interfere with staff 2FA or SSO.
         $passwordPost = $kind === 'staff' ? isset($_POST['userid']) : isset($_POST['luser']);
-        if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST' && $passwordPost) {
+        $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
+        if ($method === 'POST' && $passwordPost) {
+            // Validate this submission before osTicket tries the credentials.
+            // Client logins are rendered again on the same POST when the password
+            // is incorrect. Keep buffering for that response so the fresh login
+            // form gets a new Turnstile widget; a successful login redirects.
             if (!$this->verify($cfg, $kind)) self::reject($kind);
+            if ($kind === 'staff') return; // Staff login is AJAX; leave unchanged.
+        } elseif ($method !== 'GET') {
+            // Do not inject a challenge into unrelated POSTs or methods.
             return;
         }
-        if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'GET' && !$passwordPost) return;
 
         $siteKey = trim((string)$cfg->get('site_key'));
         $secret = trim((string)$cfg->get('secret_key'));

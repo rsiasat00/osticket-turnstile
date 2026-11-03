@@ -1,11 +1,11 @@
 # Cloudflare Turnstile Login Protection
 
-**Version:** 0.3.5  
+**Version:** 0.3.7  
 **Author:** Ralph Julian Siasat  
 **Minimum osTicket version:** 1.18  
 **Environment used for development:** osTicket 1.18.1, PHP 8.2
 
-Plug-and-play turnstile verification for agent and client password logins.
+Plug-and-play Cloudflare Turnstile verification for agent and client password-based logins.
 
 ## Installation
 
@@ -68,7 +68,7 @@ restoring a known-good plugin file may additionally be required.
 1. Open both login pages and confirm the widget is present when the corresponding option is enabled.
 2. Confirm successful challenges and an actual successful password login.
 3. Submit without a Turnstile token; confirm login is rejected before credential checking.
-4. Test incorrect-password retries, staff AJAX responses, and any configured 2FA/SSO flows.
+4. Test incorrect-password retries (the client widget must reappear immediately after the error), staff AJAX responses, and any configured 2FA/SSO flows.
 5. Disable the plugin instance and confirm the unmodified login pages work.
 
 **Cloudflare troubleshooting:** If a challenge displays **“Unable to connect to website”**, check allowed hostnames, browser network failures, CSP, browser extensions, and reverse-proxy response headers. Confirm successful Siteverify responses on the deployed hostname before enabling enforcement for all users.
@@ -82,5 +82,7 @@ restoring a known-good plugin file may additionally be required.
 5. Test the emergency SQL scripts in a non-production environment with your installation's real database prefix. Confirm staff-only recovery, full disable, and normal login after recovery.
 6. Deploy to production during a controlled change window with database access available to recover administrator login. Enable and test staff login before enabling client login enforcement.
 7. Check PHP/HTTP error logs, CSP failures, Turnstile network calls, and osTicket login behavior. If verification fails, run the staff-only emergency script, then investigate.
+
+**Bug fix in v0.3.7:** Client password POSTs that pass Turnstile verification now retain response injection, so a failed password attempt displays a fresh widget on the same login page. Staff AJAX behavior is unchanged.
 
 **Release status:** The package passes static PHP syntax checks. Production readiness depends on the above environment-specific integration and recovery tests; these have not been performed against your deployed server here.
